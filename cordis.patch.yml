@@ -1,0 +1,8 @@
+# dsh-chat-tick-rail bundle patch: inserts the plugin row. The host node half
+# is a no-op; the browser half is served through the package's dsh.client
+# declaration at /plugins/dsh-chat-tick-rail/client.js and activates in the
+# web shell, where it overlays the conversation scrollport with a message
+# navigation rail.
+- insert:
+    - id: chat-tick-rail
+      name: dsh-chat-tick-rail
