@@ -13,13 +13,18 @@ dsh web UI 插件：会话内消息导航刻度条（ZCode/Codex 风格）。在
 
 ```sh
 # 在 deepseek-harness 仓库内执行（dsh CLI 从源码运行）
+
+# 从 npm 安装
+pnpm dsh plugin --profile web add dsh-chat-tick-rail
+
+# 或从本地目录安装（开发迭代）
 pnpm dsh plugin --profile web add E:/Demo/cli-tools/dsh-chat-tick-rail
 
 # 插件集在启动时扫描，需重启 web 服务生效
 pnpm dsh --profile web
 ```
 
-`dsh plugin` 通过 pnpm 把本目录安装进 web profile，并因 `dsh.bundle.patch` 声明自动把
+`dsh plugin` 通过 pnpm 把该包安装进 web profile，并因 `dsh.bundle.patch` 声明自动把
 该包加入 profile 的 patch 层栈。卸载：`pnpm dsh plugin --profile web remove dsh-chat-tick-rail`。
 
 ## 结构
