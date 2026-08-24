@@ -1,6 +1,6 @@
 {
   "name": "dsh-chat-tick-rail",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "dsh web UI plugin: in-session message navigation rail (one tick per user message, viewport marker, click to jump)",
   "main": "lib/index.js",
