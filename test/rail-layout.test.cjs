@@ -1324,6 +1324,8 @@ test('supports scroll-to-top floating button, keyboard Home navigation, and auto
   const toTopBtn = body.children.find(child => child.dataset && child.dataset.dshToTop === '')
   assert.ok(toTopBtn !== undefined, 'toTopBtn should be present in body')
   assert.equal(toTopBtn.hasAttribute('data-hidden'), false, 'toTopBtn should be visible when scrollTop > 120')
+  assert.equal(toTopBtn.style.left, '558px', 'toTopBtn should align with chat column / composer')
+  assert.equal(toTopBtn.style.top, '398px', 'toTopBtn should sit directly above composer')
 
   // Click toTop button
   toTopBtn.dispatchEvent('click')
