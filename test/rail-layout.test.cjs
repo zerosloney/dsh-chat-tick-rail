@@ -116,9 +116,11 @@ function makeElement(tagName) {
       const handlers = element.listeners.get(name) || []
       element.listeners.set(name, handlers.filter(handler => handler !== listener))
     },
-    dispatchEvent(nameOrEvent) {
+    dispatchEvent(nameOrEvent, eventInit) {
       const type = typeof nameOrEvent === 'string' ? nameOrEvent : nameOrEvent.type
-      const event = typeof nameOrEvent === 'string' ? { type, target: element } : nameOrEvent
+      const event = typeof nameOrEvent === 'string'
+        ? Object.assign({ type, target: element }, eventInit)
+        : Object.assign({ target: element }, nameOrEvent)
       for (const listener of element.listeners.get(type) || []) listener(event)
     },
     getBoundingClientRect() { return { top: 0, bottom: 0, height: 0, left: 0, right: 0 } },
@@ -1180,6 +1182,80 @@ test('discovers active conversation scrollport in multi-pane or drawer environme
 
   // Should have bound to the subagent drawer port (since it contains active element and is larger)
   assert.ok(ticks[0].getAttribute('aria-label').includes('Subagent research task'))
+
+  for (const td of effects) {
+    if (typeof td === 'function') td()
+  }
+})
+
+test('supports 5-stage accordion fisheye wave and continuous rail pointer tracking', () => {
+  const rows = []
+  for (let i = 0; i < 7; i++) {
+    const row = makeElement('div')
+    row.setAttribute('data-chat-anchor-key', `wave-${i}`)
+    row.setAttribute('data-chat-flow-kind', 'user')
+    row.innerText = `Message ${i}`
+    row.getBoundingClientRect = () => ({ top: i * 100, bottom: (i + 1) * 100, height: 100, left: 0, right: 600 })
+    row.isConnected = true
+    rows.push(row)
+  }
+
+  const column = makeElement('div')
+  column.isConnected = true
+  column.scrollHeight = 1000
+  column.getBoundingClientRect = () => ({ top: 0, bottom: 1000, height: 1000, left: 0, right: 600 })
+  column.querySelectorAll = () => rows
+  column.querySelector = () => rows[0]
+
+  const port = makeElement('div')
+  port.isConnected = true
+  port.scrollHeight = 1000
+  port.clientHeight = 800
+  port.getBoundingClientRect = () => ({ top: 0, bottom: 800, height: 800, left: 0, right: 600, width: 600 })
+  port.querySelector = sel => (sel === '[data-chat-flow]' ? column : null)
+
+  const { document, windowObject, body, head } = createMockEnvironment({ port, innerHeight: 800 })
+  const effects = []
+  const plugin = loadPlugin(document, windowObject)
+  plugin.apply({
+    effect(fn) {
+      const td = fn()
+      effects.push(td)
+      return td
+    },
+  })
+
+  const rail = body.children.find(child => child.dataset.dshTickRail === '')
+  const ticks = rail.children.filter(child => child.className === 'tick')
+  assert.equal(ticks.length, 7)
+
+  // Test continuous pointermove on rail over middle tick (index 3)
+  rail.getBoundingClientRect = () => ({ top: 100, bottom: 170, height: 70, left: 10, right: 24, width: 14 })
+  rail.dispatchEvent('pointermove', { clientY: 135 }) // index 3
+
+  assert.equal(rail.hasAttribute('data-hovering'), true)
+  assert.equal(ticks[3].classList.contains('active-hover'), true)
+  assert.equal(ticks[2].classList.contains('approach'), true)
+  assert.equal(ticks[4].classList.contains('approach'), true)
+  assert.equal(ticks[1].classList.contains('approach-far'), true)
+  assert.equal(ticks[5].classList.contains('approach-far'), true)
+  assert.equal(ticks[0].classList.contains('approach-3'), true)
+  assert.equal(ticks[6].classList.contains('approach-3'), true)
+
+  // Style sheet should include approach-3 and 5-stage fisheye classes
+  const style = head.children.find(child => child.tagName === 'style')
+  assert.ok(style.textContent.includes('.tick.approach-3'))
+  assert.ok(style.textContent.includes('.tick.active-hover'))
+
+  // Moving pointer out of rail clears all wave states
+  rail.dispatchEvent('pointerleave')
+  assert.equal(rail.hasAttribute('data-hovering'), false)
+  for (let i = 0; i < 7; i++) {
+    assert.equal(ticks[i].classList.contains('active-hover'), false)
+    assert.equal(ticks[i].classList.contains('approach'), false)
+    assert.equal(ticks[i].classList.contains('approach-far'), false)
+    assert.equal(ticks[i].classList.contains('approach-3'), false)
+  }
 
   for (const td of effects) {
     if (typeof td === 'function') td()
