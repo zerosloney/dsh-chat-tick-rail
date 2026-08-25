@@ -15,9 +15,12 @@
 - **GPU 硬件加速渲染（Hardware Acceleration）**：全面采用 `transform: translate3d` 与 `will-change: transform`，大幅提升 120Hz 高刷下的拖拽与滚动流畅度。
 - **Pin 锁定与空白处关闭**：点击刻度平滑滚动跳转并固定（Pin）预览框；点击页面空白区域或按下 `Esc` 键自动取消固定。
 - **无感分页与 Key 稳定性**：基于 `data-chat-anchor-key` 进行会话节点定位，向上滚动加载更早历史消息时，Pinned 状态和刻度高亮保持绝对精准。
+- **一键回到顶部与自动加载更早历史（Scroll to Top & Auto-Load Older）**：
+  - 与 DSH 官方原生的「到底部」按钮呼应，当视口向下滚动时自动浮现优雅的「到顶部」悬浮按钮（`▲`），点击即可平滑直达顶部。
+  - 到达顶部后智能触发「加载更早」历史记录按钮，无缝展开前序对话并自动重算完整刻度索引。
 - **全键盘与无障碍支持（A11y）**：
   - **聚焦刻度**：支持 `ArrowUp` / `ArrowDown`（或 `ArrowLeft` / `ArrowRight`）在刻度间切换，`Home` / `End` 切换至首尾，`Enter` / `Space` 触发跳转。
-  - **全局快捷键**：在页面任意位置使用 `Alt + ArrowUp` / `Alt + ArrowDown` 快速在上一个/下一个用户提问间穿梭。
+  - **全局快捷键**：在页面任意位置使用 `Alt + ArrowUp` / `Alt + ArrowDown` 快速在上一个/下一个用户提问间穿梭；使用 `Alt + Home` / `Ctrl + Home` 一键直达会话顶部。
   - **ARIA 规范**：提供 `role="navigation"`、`role="button"` 及视口贴近项的 `aria-current="step"` 状态。
 - **思考中呼吸动效（Streaming Pulse）**：在模型思考或流式输出期间，最后一个刻度呈现平滑律动的呼吸灯动效。
 - **超长会话自适应密度缩放**：长会话（50+ 轮）自动压缩刻度间距，确保导轨总高度始终保持在可视区域的 70% 以内，不溢出视口。
@@ -32,9 +35,10 @@
 |---|---|---|
 | `Alt + ArrowUp` | 全局 | 快速跳转至上一条用户消息 |
 | `Alt + ArrowDown` | 全局 | 快速跳转至下一条用户消息 |
+| `Alt + Home` / `Ctrl + Home` | 全局 | 快速平滑滚动至会话顶部并触发加载更早历史 |
 | `Escape` | 全局 / 导轨聚焦 | 关闭当前 Pinned 浮层预览 |
 | `ArrowUp` / `ArrowDown` | 刻度聚焦 | 在各个刻度之间切换焦点并预览 |
-| `Home` / `End` | 刻度聚焦 | 快速移动至会话起点 / 终点 |
+| `Home` / `End` | 刻度聚焦 | 快速移动至会话起点（并加载更早历史） / 终点 |
 | `Enter` / `Space` | 刻度聚焦 | 跳转至当前聚焦的轮次并固定预览 |
 
 ---

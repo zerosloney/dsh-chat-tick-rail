@@ -52,6 +52,11 @@ function makeElement(tagName) {
       remove(name) { classNames.delete(name) },
       contains(name) { return classNames.has(name) },
     },
+    focus() {},
+    blur() {},
+    click() {
+      element.dispatchEvent('click')
+    },
     contains(target) {
       if (element === target) return true
       for (const child of element.children) {
@@ -210,6 +215,8 @@ function loadPlugin(document, windowObject) {
     MutationObserver: MutationObserverMock,
     requestAnimationFrame(callback) { callback(); return 0 },
     cancelAnimationFrame() {},
+    setTimeout(fn, delay) { if (typeof fn === 'function') fn(); return 0 },
+    clearTimeout() {},
     console,
   }
   vm.runInNewContext(source, context, { filename: sourcePath })
@@ -1261,5 +1268,78 @@ test('supports 5-stage accordion fisheye wave and continuous rail pointer tracki
     if (typeof td === 'function') td()
   }
 })
+
+test('supports scroll-to-top floating button, keyboard Home navigation, and auto-triggering loadOlder', () => {
+  const rows = []
+  for (let i = 0; i < 5; i++) {
+    const row = makeElement('div')
+    row.dataset.chatAnchorKey = 'turn-' + i
+    row.dataset.chatFlowKind = 'user'
+    row.textContent = 'Message ' + i
+    row.scrollHeight = 100
+    row.getBoundingClientRect = () => ({ top: i * 200, bottom: i * 200 + 100, height: 100, left: 0, right: 600 })
+    rows.push(row)
+  }
+
+  let olderClicked = 0
+  const olderBtn = makeElement('button')
+  olderBtn.textContent = '加载更早'
+  olderBtn.click = () => { olderClicked++ }
+
+  const olderDiv = makeElement('div')
+  olderDiv.className = 'Md3f7G_older'
+  olderDiv.appendChild(olderBtn)
+
+  const column = makeElement('div')
+  column.isConnected = true
+  column.scrollHeight = 1000
+  column.getBoundingClientRect = () => ({ top: -300, bottom: 700, height: 1000, left: 0, right: 600 })
+  column.querySelectorAll = () => rows
+  column.querySelector = sel => {
+    if (sel.includes('_older') || sel.includes('button')) return olderBtn
+    return rows[0]
+  }
+
+  let scrolledTop = -1
+  const port = makeElement('div')
+  port.isConnected = true
+  port.scrollTop = 300
+  port.scrollHeight = 1000
+  port.clientHeight = 600
+  port.scrollTo = opts => { scrolledTop = opts.top }
+  port.getBoundingClientRect = () => ({ top: 0, bottom: 600, height: 600, left: 0, right: 600, width: 600 })
+  port.querySelector = sel => (sel === '[data-chat-flow]' ? column : null)
+
+  const { document, windowObject, body } = createMockEnvironment({ port, innerHeight: 600 })
+  const effects = []
+  const plugin = loadPlugin(document, windowObject)
+  plugin.apply({
+    effect(fn) {
+      const td = fn()
+      effects.push(td)
+      return td
+    },
+  })
+
+  const toTopBtn = body.children.find(child => child.dataset && child.dataset.dshToTop === '')
+  assert.ok(toTopBtn !== undefined, 'toTopBtn should be present in body')
+  assert.equal(toTopBtn.hasAttribute('data-hidden'), false, 'toTopBtn should be visible when scrollTop > 120')
+
+  // Click toTop button
+  toTopBtn.dispatchEvent('click')
+  assert.equal(scrolledTop, 0, 'Clicking toTopBtn should scrollTo top: 0')
+
+  // Trigger Home key on a tick
+  const rail = body.children.find(child => child.dataset.dshTickRail === '')
+  const ticks = rail.children.filter(child => child.className === 'tick')
+  scrolledTop = -1
+  ticks[2].dispatchEvent('keydown', { key: 'Home' })
+  assert.equal(scrolledTop, 0, 'Home key on tick should trigger scrollTo top: 0')
+
+  for (const td of effects) {
+    if (typeof td === 'function') td()
+  }
+})
+
 
 
