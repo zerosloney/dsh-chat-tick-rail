@@ -9,6 +9,15 @@
     "./client": "./lib/client.js",
     "./package.json": "./package.json"
   },
+  "scripts": {
+    "test": "node --test \"test/*.test.cjs\"",
+    "prepublishOnly": "npm test",
+    "release": "npm test && npm version patch -m \"chore(release): bump version to %s\" && npm publish && git push origin main --follow-tags"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

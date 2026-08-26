@@ -83,6 +83,29 @@ pnpm dsh plugin --profile web remove dsh-chat-tick-rail
 
 ---
 
+## 发布（本机流程）
+
+本仓库不依赖 CI 发布（`publish.yml` 已移除），在配置好 npm 认证（`~/.npmrc` 中 `//registry.npmjs.org/:_authToken`）的本机执行：
+
+```sh
+npm run release
+```
+
+`release` 依次完成：运行单元测试 → `npm version patch`（生成 `chore(release): bump version to <版本>` 提交与 `v<版本>` tag） → `npm publish` → 推送提交与 tag 到 `origin`。
+
+手动分步发布（与 `release` 等价）：
+
+```sh
+npm test                                    # 14 项单元测试
+npm version patch -m "chore(release): bump version to %s"
+npm publish                                 # publishConfig 已指向 npmjs 官方源，无需 --registry
+git push origin main --follow-tags
+```
+
+> 说明：`publishConfig.registry` 固定为 `https://registry.npmjs.org/`，与 `~/.npmrc` 中指向 npmmirror 镜像的默认 `registry` 互不影响；`prepublishOnly` 会在每次 `npm publish` 前强制重跑测试。
+
+---
+
 ## License
 
 MIT
