@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - name: Test
+        # Zero runtime/dev dependencies: the test suite only uses Node
+        # built-ins (node:test, node:assert, node:vm, ...), so no install.
+        run: npm test
